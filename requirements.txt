@@ -1,0 +1,34 @@
+# =====================================================
+# NeoCare Health - Backend Dependencies
+# =====================================================
+# API Framework
+fastapi
+uvicorn[standard]
+
+# Database & ORM
+SQLAlchemy
+psycopg2-binary
+
+# Data Validation
+pydantic[email]>=2,<3
+
+# Authentication & Security
+python-jose[cryptography]
+passlib
+bcrypt==4.0.1
+
+# Request Handling
+python-multipart
+python-dotenv
+
+# Environment Management & Logging
+python-dotenv
+
+# Production Deployment
+gunicorn
+
+# Rate Limiting (Framework - ready for enhanced rate limiting)
+slowapi
+
+# PDF Generation
+reportlab
