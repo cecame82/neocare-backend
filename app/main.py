@@ -81,7 +81,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5174",
         "http://127.0.0.1:5174",
-        "https://neocare-production.up.railway.app",
+        "http://localhost:5181",
+        "http://127.0.0.1:5181",
+        "https://web-production-61c2c.up.railway.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -117,4 +119,5 @@ async def preflight_handler(rest_of_path: str):
 @app.get("/")
 def read_root():
     return {"message": "Bienvenidos a la API de NeoCare Health."}
+
 
