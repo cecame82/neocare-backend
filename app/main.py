@@ -133,9 +133,9 @@ def fix_cards(db: Session = Depends(get_db)):
 @app.options("/{rest_of_path:path}")
 async def preflight_handler(rest_of_path: str):
     return {}
-# forzar redeploy
-
 
 @app.get("/")
 def read_root():
     return {"message": "Bienvenidos a la API de NeoCare Health."}
+
+# redeploy fix-cards 2
