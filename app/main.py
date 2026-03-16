@@ -133,6 +133,7 @@ def fix_cards(db: Session = Depends(get_db)):
 @app.options("/{rest_of_path:path}")
 async def preflight_handler(rest_of_path: str):
     return {}
+# forzar redeploy
 
 
 @app.get("/")
