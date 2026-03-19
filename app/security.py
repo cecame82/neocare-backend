@@ -56,10 +56,7 @@ def decode_access_token(token: str):
 # ESQUEMAS DE SEGURIDAD
 # ============================
 
-# ❌ Este es el que hace que Swagger muestre username/password
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
-# ✅ ESTE es el que Swagger necesita para mostrar "Bearer <token>"
 bearer_scheme = HTTPBearer()
 
 # ============================
@@ -76,7 +73,10 @@ def get_current_user(token: str = Depends(bearer_scheme), db: Session = Depends(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    payload = decode_access_token(token.credentials)
+    # Acepta token.credentials (HTTPBearer) o token directo (otros clientes)
+    token_str = token.credentials if hasattr(token, "credentials") else token
+    payload = decode_access_token(token_str)
+
     if payload is None:
         raise credentials_exception
 
@@ -89,3 +89,5 @@ def get_current_user(token: str = Depends(bearer_scheme), db: Session = Depends(
         raise credentials_exception
 
     return user
+
+

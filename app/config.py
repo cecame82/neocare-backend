@@ -7,8 +7,11 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 
-# Cargar variables de entorno
-load_dotenv()
+# ------------------------------------------------------------
+# Cargar .env SOLO en local (no en producción)
+# ------------------------------------------------------------
+if os.path.exists(".env"):
+    load_dotenv()
 
 
 class Settings:
@@ -21,12 +24,12 @@ class Settings:
     # --- BASE DE DATOS ---
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     if not DATABASE_URL:
-        raise ValueError("❌ DATABASE_URL no configurada en .env")
+        raise ValueError("❌ DATABASE_URL no configurada en variables de entorno")
     
     # --- SEGURIDAD JWT ---
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     if not SECRET_KEY:
-        raise ValueError("❌ SECRET_KEY no configurada en .env")
+        raise ValueError("❌ SECRET_KEY no configurada en variables de entorno")
     
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRES_IN: int = int(os.getenv("JWT_EXPIRES_IN", "60"))  # minutos
@@ -42,8 +45,8 @@ class Settings:
         "http://127.0.0.1:5176",
         "http://localhost:5177",
         "http://127.0.0.1:5177",
-        "http://localhost:5179",
-        "http://127.0.0.1:5179",
+        "http://localhost:5180",
+        "http://127.0.0.1:5180",
         "http://localhost:5178",
         "http://127.0.0.1:5178",
 
@@ -66,7 +69,11 @@ class Settings:
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "X-XSS-Protection": "1; mode=block",
-        "Strict-Transport-Security": "max-age=31536000; includeSubDomains" if ENVIRONMENT == "production" else "",
+        "Strict-Transport-Security": (
+            "max-age=31536000; includeSubDomains" 
+            if ENVIRONMENT == "production" 
+            else ""
+        ),
         "Content-Security-Policy": (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
@@ -98,4 +105,5 @@ class Settings:
 
 # Instancia global de configuración
 settings = Settings()
+
 
