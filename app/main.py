@@ -2,14 +2,11 @@
 Módulo principal de la API de NeoCare Health.
 Configura la aplicación FastAPI, CORS y las rutas de los controladores.
 """
-from fastapi import FastAPI, Depends
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from sqlalchemy.orm import Session
-
-from app.database import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session
 
 from app.database import engine, SessionLocal, get_db
@@ -26,18 +23,24 @@ from app.routers import (
     labels,
     labelTemplates,
     checklist,
+    report,
 )
-from app.routers import report
 from app.services.label_template_seed import seed_label_templates
 from app.models import Card
-from app.models import Card
 
-# Obtener logger centralizado
+# ------------------------------------------------------------
+# LOGGER
+# ------------------------------------------------------------
 logger = get_logger(__name__)
 
-# Crear tablas en la base de datos si no existen
+# ------------------------------------------------------------
+# CREAR TABLAS
+# ------------------------------------------------------------
 models.Base.metadata.create_all(bind=engine)
 
+# ------------------------------------------------------------
+# CREAR APP
+# ------------------------------------------------------------
 app = FastAPI(
     title=settings.API_TITLE,
     description=settings.API_DESCRIPTION,
@@ -45,10 +48,11 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
-
+# ------------------------------------------------------------
+# STARTUP: SEED
+# ------------------------------------------------------------
 @app.on_event("startup")
 def startup_seed():
-    """Semilla de datos al iniciar la aplicación."""
     logger.info("🚀 Startup ejecutándose - Ambiente: %s", settings.ENVIRONMENT)
     db = SessionLocal()
     try:
@@ -59,19 +63,13 @@ def startup_seed():
     finally:
         db.close()
 
-
-# ============================================================
-# 🛡️ Middleware de Security Headers (SIN ROMPER CORS)
-# ============================================================
+# ------------------------------------------------------------
+# SECURITY HEADERS (NO ROMPER CORS)
+# ------------------------------------------------------------
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Middleware que agrega headers de seguridad a todas las respuestas."""
     async def dispatch(self, request, call_next):
         response = await call_next(request)
 
-        # ❗ NO tocar los headers de CORS aquí
-        # FastAPI los maneja automáticamente
-
-        # Agregar headers de seguridad personalizados
         for header, value in settings.SECURITY_HEADERS.items():
             response.headers[header] = value
 
@@ -80,38 +78,22 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SecurityHeadersMiddleware)
 logger.info("✅ Security headers configurados")
 
-
-# ============================================================
-# 🚧 CORS — DEBE IR DESPUÉS DEL MIDDLEWARE DE SEGURIDAD
-# ============================================================
+# ------------------------------------------------------------
+# CORS — USANDO settings.CORS_ORIGINS
+# ------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        # TODOS tus puertos locales
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        "http://localhost:5175",
-        "http://127.0.0.1:5175",
-        "http://localhost:5176",
-        "http://127.0.0.1:5176",
-
-        # Frontend en Railway
-        "https://web-production-61c2c.up.railway.app",
-        "https://neocare-production.up.railway.app",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=settings.CORS_CREDENTIALS,
+    allow_methods=settings.CORS_METHODS,
+    allow_headers=settings.CORS_HEADERS,
 )
 
-logger.info("✅ CORS configurado correctamente")
+logger.info("✅ CORS configurado correctamente con settings.CORS_ORIGINS")
 
-
-# ============================================================
-# 📌 Inclusión de Routers
-# ============================================================
+# ------------------------------------------------------------
+# ROUTERS
+# ------------------------------------------------------------
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(cards.router)
@@ -123,46 +105,32 @@ app.include_router(labels.router)
 app.include_router(labelTemplates.router)
 app.include_router(checklist.router)
 
-
-# ============================================================
-# 🛠️ Endpoint temporal para arreglar tarjetas antiguas
-# ============================================================
+# ------------------------------------------------------------
+# FIX CARDS (TEMPORAL)
+# ------------------------------------------------------------
 @app.post("/fix-cards")
 def fix_cards(db: Session = Depends(get_db)):
     cards = db.query(Card).all()
 
     for c in cards:
-        c.board_id = 1   # Tablero César
-        c.list_id = 1    # Lista "Por Hacer"
-        c.user_id = 1    # Tu usuario
+        c.board_id = 1
+        c.list_id = 1
+        c.user_id = 1
 
     db.commit()
     return {"status": "ok", "updated": len(cards)}
 
-
-# ============================================================
-# 🛠️ Endpoint temporal para arreglar tarjetas antiguas
-# ============================================================
-@app.post("/fix-cards")
-def fix_cards(db: Session = Depends(get_db)):
-    cards = db.query(Card).all()
-
-    for c in cards:
-        c.board_id = 1   # Tablero César
-        c.list_id = 1    # Lista "Por Hacer"
-        c.user_id = 1    # Tu usuario
-
-    db.commit()
-    return {"status": "ok", "updated": len(cards)}
-
-
-# ============================================================
-# 🧩 Handler universal para OPTIONS — soluciona preflight
-# ============================================================
+# ------------------------------------------------------------
+# HANDLER UNIVERSAL PARA OPTIONS (PREFLIGHT)
+# ------------------------------------------------------------
 @app.options("/{rest_of_path:path}")
 async def preflight_handler(rest_of_path: str):
     return {}
 
+# ------------------------------------------------------------
+# ROOT
+# ------------------------------------------------------------
 @app.get("/")
 def read_root():
     return {"message": "Bienvenidos a la API de NeoCare Health."}
+
