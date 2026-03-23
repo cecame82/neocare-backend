@@ -87,14 +87,8 @@ logger.info("✅ Security headers configurados")
 # ------------------------------------------------------------
 
 # Asegurar que los orígenes correctos están permitidos
-origins = [
-    "http://localhost:5173",
-    "https://neocare-frontend-production.up.railway.app",
-]
+origins = settings.CORS_ORIGINS
 
-# Si settings.CORS_ORIGINS está vacío o incorrecto, usamos los buenos
-if not settings.CORS_ORIGINS:
-    settings.CORS_ORIGINS = origins
 
 app.add_middleware(
     CORSMiddleware,
