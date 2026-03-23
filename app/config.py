@@ -22,41 +22,39 @@ class Settings:
     DEBUG: bool = ENVIRONMENT == "development"
     
     # --- BASE DE DATOS ---
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    DATABASE_URL: str = os.getenv("DATABASE_URL") or ""
     if not DATABASE_URL:
         raise ValueError("❌ DATABASE_URL no configurada en variables de entorno")
     
     # --- SEGURIDAD JWT ---
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+    SECRET_KEY: str = os.getenv("SECRET_KEY") or ""
     if not SECRET_KEY:
         raise ValueError("❌ SECRET_KEY no configurada en variables de entorno")
     
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRES_IN: int = int(os.getenv("JWT_EXPIRES_IN", "60"))  # minutos
+    JWT_EXPIRES_IN: int = int(os.getenv("JWT_EXPIRES_IN") or 60)  # minutos
     
     # --- CORS ---
     CORS_ORIGINS: list[str] = [
-        # PUERTO REAL DE TU FRONTEND (VITE)
+        # Puertos típicos de Vite
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
-
-        # Puertos típicos de Vite
         "http://localhost:5176",
         "http://127.0.0.1:5176",
         "http://localhost:5177",
         "http://127.0.0.1:5177",
         "http://localhost:5180",
         "http://127.0.0.1:5180",
-        "http://localhost:5178",
-        "http://127.0.0.1:5178",
 
-        # Puertos típicos de React CRA
+        # React CRA
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
     
-    # Agregar orígenes personalizados desde .env (separados por comas)
-    CUSTOM_ORIGINS: Optional[str] = os.getenv("CORS_ORIGINS", None)
+    # Agregar orígenes personalizados desde .env o Railway
+    CUSTOM_ORIGINS: Optional[str] = os.getenv("CORS_ORIGINS")
     if CUSTOM_ORIGINS:
         CORS_ORIGINS.extend([origin.strip() for origin in CUSTOM_ORIGINS.split(",")])
     
@@ -90,11 +88,11 @@ class Settings:
     API_VERSION: str = "1.0.0"
     
     # --- LOGS ---
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO" if not DEBUG else "DEBUG")
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL") or ("DEBUG" if DEBUG else "INFO")
     
     # --- RATE LIMITING ---
-    AUTH_RATE_LIMIT_ATTEMPTS: int = int(os.getenv("AUTH_RATE_LIMIT_ATTEMPTS", "5"))
-    AUTH_RATE_LIMIT_MINUTES: int = int(os.getenv("AUTH_RATE_LIMIT_MINUTES", "15"))
+    AUTH_RATE_LIMIT_ATTEMPTS: int = int(os.getenv("AUTH_RATE_LIMIT_ATTEMPTS") or 5)
+    AUTH_RATE_LIMIT_MINUTES: int = int(os.getenv("AUTH_RATE_LIMIT_MINUTES") or 15)
     
     # --- SETTINGS ADICIONALES ---
     MAX_PASSWORD_LENGTH: int = 72  # Límite de bcrypt
@@ -105,4 +103,5 @@ class Settings:
 
 # Instancia global de configuración
 settings = Settings()
+
 
