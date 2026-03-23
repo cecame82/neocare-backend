@@ -105,8 +105,4 @@ class Settings:
 
 # Instancia global de configuración
 settings = Settings()
-<<<<<<< HEAD
 
-
-=======
->>>>>>> abb45ec6c71b49776bcb1386ae95eab333cf6f1c

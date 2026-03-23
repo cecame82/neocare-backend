@@ -70,7 +70,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
 
+        # No tocar CORS aquí
         for header, value in settings.SECURITY_HEADERS.items():
+            # Evitar sobrescribir headers CORS
+            if header.lower().startswith("access-control-"):
+                continue
             response.headers[header] = value
 
         return response
@@ -79,17 +83,28 @@ app.add_middleware(SecurityHeadersMiddleware)
 logger.info("✅ Security headers configurados")
 
 # ------------------------------------------------------------
-# CORS — USANDO settings.CORS_ORIGINS
+# CORS — CONFIGURACIÓN CORRECTA
 # ------------------------------------------------------------
+
+# Asegurar que los orígenes correctos están permitidos
+origins = [
+    "http://localhost:5173",
+    "https://neocare-frontend-production.up.railway.app",
+]
+
+# Si settings.CORS_ORIGINS está vacío o incorrecto, usamos los buenos
+if not settings.CORS_ORIGINS:
+    settings.CORS_ORIGINS = origins
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=settings.CORS_CREDENTIALS,
-    allow_methods=settings.CORS_METHODS,
-    allow_headers=settings.CORS_HEADERS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-logger.info("✅ CORS configurado correctamente con settings.CORS_ORIGINS")
+logger.info("✅ CORS configurado correctamente con: %s", settings.CORS_ORIGINS)
 
 # ------------------------------------------------------------
 # ROUTERS

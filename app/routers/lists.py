@@ -13,6 +13,8 @@ router = APIRouter(
     tags=["Lists"]
 )
 
+# ACEPTA /lists Y /lists/
+@router.get("", response_model=List[schemas.ListSchema])
 @router.get("/", response_model=List[schemas.ListSchema])
 def read_lists_for_board(
     board_id: int,
@@ -25,15 +27,19 @@ def read_lists_for_board(
     ).first()
     if not board:
         raise HTTPException(status_code=404, detail="Tablero no encontrado")
+
     if board.owner_id != current_user.id:
         raise HTTPException(
             status_code=403,
             detail="No tienes permiso para ver las listas de este tablero"
         )
 
-    lists = db.query(models.List).options(
-        joinedload(models.List.cards)
-    ).filter(
-        models.List.board_id == board_id
-    ).order_by(models.List.position).all()
+    lists = (
+        db.query(models.List)
+        .options(joinedload(models.List.cards))
+        .filter(models.List.board_id == board_id)
+        .order_by(models.List.position)
+        .all()
+    )
+
     return lists
